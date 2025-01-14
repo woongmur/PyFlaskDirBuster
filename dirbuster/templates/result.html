@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>테스트 결과</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f8f9fa;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 50px auto;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        p {
+            text-align: center;
+            font-size: 18px;
+            color: #333;
+        }
+        p2 {
+            display: block;
+            text-align: center;
+            font-size: 14px;
+            color: #696969;
+        }
+        .button-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 20px;
+            width: 100%;
+        }
+        .toggle-text {
+            font-size: 20px;
+            font-weight: bold;
+            color: #007bff;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .toggle-text:hover {
+            color: #0056b3;
+        }
+        .toggle-text .fa-chevron-right {
+            margin-right: 5px;
+            transition: transform 0.3s;
+        }
+        .toggle-text.active .fa-chevron-right {
+            transform: rotate(90deg);
+        }
+        ul {
+            list-style-type: none;
+            padding: 0;
+            margin: 20px 0;
+            width: 80%; /* 아코디언 스타일의 넓이를 줄임 */
+            display: none;
+            margin-left: auto; /* 가운데 정렬 */
+            margin-right: auto; /* 가운데 정렬 */
+        }
+        ul li {
+            background-color: #e9ecef;
+            margin: 5px 0;
+            padding: 10px;
+            border-radius: 5px;
+            display: flex;
+            justify-content: space-between;
+        }
+        .word {
+            flex-basis: 30%;
+            text-align: left;
+        }
+        .link {
+            flex-basis: 70%;
+            text-align: right;
+        }
+        .btn {
+            padding: 10px 20px;
+            font-size: 16px;
+            font-weight: bold;
+            color: #fff;
+            background-color: #007bff;
+            border: none;
+            border-radius: 5px;
+            text-decoration: none;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .btn:hover {
+            background-color: #0056b3;
+        }
+        .btn-secondary {
+            background-color: #6c757d;
+        }
+        .btn-secondary:hover {
+            background-color: #5a6268;
+        }
+        .tree-container {
+            margin-top: 20px;
+            padding-left: 20px;
+            word-wrap: break-word;
+            width: 80%; /* 아코디언 스타일의 넓이를 줄임 */
+            margin-left: auto; /* 가운데 정렬 */
+            margin-right: auto; /* 가운데 정렬 */
+        }
+        .tree ul {
+            list-style-type: none;
+            padding-left: 20px;
+            display: none;
+            width: 100%;
+        }
+        .tree ul.active {
+            display: block;
+            animation: slide-down 0.3s ease-out;
+        }
+        .tree li {
+            margin: 5px 0;
+            cursor: pointer;
+            position: relative; /* 선 연결을 위한 포지션 설정 */
+        }
+        .tree li.root::before, .tree li.root::after {
+            content: none; /* 최상위 요소의 선 제거 */
+        }
+        .tree li:not(.root)::before, .tree li:not(.root)::after {
+            content: '';
+            position: absolute;
+            left: -20px;
+        }
+        .tree li:not(.root)::before {
+            border-left: 1px solid #666; /* 선 색깔을 더 진하게 변경 */
+            bottom: 50px;
+            height: 100%;
+            width: 1px;
+            top: 0;
+        }
+        .tree li:not(.root)::after {
+            border-top: 1px solid #666; /* 선 색깔을 더 진하게 변경 */
+            top: 20px;
+            width: 20px;
+            height: 20px;
+        }
+        .tree li:first-child::before {
+            top: 0;
+            height: 50%;
+        }
+        .tree li:last-child::before {
+            height: 20px;
+        }
+        .tree span {
+            cursor: pointer;
+            display: inline-block;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: calc(100% - 20px);
+            vertical-align: middle;
+            font-size: 18px; /* 글씨 크기 2px 증가 */
+        }
+        .tree .directory span::before {
+            content: "📁";
+            margin-right: 5px;
+            vertical-align: middle;
+            font-size: 18px; /* 아이콘 크기 2px 증가 */
+        }
+        .tree .file span::before {
+            content: "📄";
+            margin-right: 5px;
+            vertical-align: middle;
+            font-size: 18px; /* 아이콘 크기 2px 증가 */
+        }
+        @keyframes slide-down {
+            0% {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>테스트 결과</h1>
+        <p><strong>테스트 단어 수:</strong> {{ total_tests }}</p>
+        <p><strong>검출된 디렉터리 수:</strong> {{ vulnerable_tests }}</p>
+        <div class="button-container">
+            <span class="toggle-text" onclick="toggleVulnerableWords()"><i class="fas fa-chevron-right"></i>검출된 디렉터리 목록</span>
+            <ul id="vulnerableWordsList">
+                {% for word, link in vulnerable_words %}
+                    <li>
+                        <span class="word">{{ word }}</span>
+                        <a class="link" href="{{ link }}" target="_blank">{{ link }}</a>
+                    </li>
+                {% endfor %}
+            </ul>
+            <span class="toggle-text" onclick="toggleTree()"><i class="fas fa-chevron-right"></i>디렉터리 트리 구조</span>
+            <div class="tree-container">
+                <div class="tree">
+                    <ul>
+                        <li class="directory root"><span>{{ target_url }}</span>
+                            {{ render_tree(tree) }}
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            <p2> ※ 테스트 결과로 나온 디렉터리 경로에는 버전정보, 민감한 정보등이 포함될 수 있습니다.</p2>
+            <p2> ※ 서버 버전정보 숨김, 인덱스 페이지 비활성화, 민감한 정보가 포함된 페이지에 대한 접근 제한 등이 해결책이 될 수 있습니다.</p2>
+            <a href="/download/{{ report_filename }}" class="btn">보고서 다운로드</a>
+            <a href="/" class="btn btn-secondary">돌아가기</a>
+        </div>
+    </div>
+    <script>
+        function toggleVulnerableWords() {
+            var list = document.getElementById("vulnerableWordsList");
+            var toggleText = document.querySelector(".toggle-text");
+            if (list.style.display === "none" || list.style.display === "") {
+                list.style.display = "block";
+                toggleText.classList.add("active");
+            } else {
+                list.style.display = "none";
+                toggleText.classList.remove("active");
+            }
+        }
+
+        function toggleTree() {
+            var tree = document.querySelector(".tree ul");
+            var toggleText = document.querySelectorAll(".toggle-text")[1];
+            if (tree.classList.contains("active")) {
+                tree.classList.remove("active");
+                toggleText.classList.remove("active");
+            } else {
+                tree.classList.add("active");
+                toggleText.classList.add("active");
+            }
+        }
+
+        document.addEventListener("DOMContentLoaded", function() {
+            document.querySelectorAll(".tree .directory > span").forEach(function(span) {
+                span.addEventListener("click", function() {
+                    var parentLi = span.parentElement;
+                    var subUl = parentLi.querySelector("ul");
+                    if (subUl) {
+                        if (subUl.classList.contains("active")) {
+                            subUl.classList.remove("active");
+                        } else {
+                            subUl.classList.add("active");
+                        }
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>디렉터리 점검</title>
+    <style>
+        /* 로딩 오버레이 스타일 */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(255, 255, 255, 0.8); 
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999; 
+            visibility: hidden; 
+        }
+
+        .loading-spinner {
+            border: 16px solid #f3f3f3;
+            border-top: 16px solid #3498db;
+            border-radius: 50%;
+            width: 120px;
+            height: 120px;
+            animation: spin 2s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* 로딩 텍스트 스타일 */
+        .loading-text {
+            margin-top: 20px;
+            font-size: 20px;
+            text-align: center;
+        }
+
+        .subtext {
+            text-align: center;
+            font-size: 14px;
+            color: #666;
+            margin-top: 20px; 
+            margin-bottom: 20px; 
+        }
+
+        h1 {
+            text-align: center;
+            margin-top: 25px;
+            font-size: 175px; 
+            font-weight: bold;
+            color: #666;
+            margin-bottom: 0; 
+            -webkit-text-stroke: 2px black; 
+            -webkit-text-fill-color: white; 
+        }
+
+        /* 테스트 영역 스타일 */
+        .test-container {
+            max-width: 1100px; 
+            margin: 0 auto;
+            padding: 20px 0; 
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .test-container h2 {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        /* 입력 폼 스타일 */
+        .test-form {
+            text-align: center;
+        }
+
+        .test-form label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: bold;
+            color: #666;
+        }
+
+        .test-form input[type="text"],
+        .test-form select {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+
+        .test-form input[type="submit"] {
+            width: 140px; 
+            padding: 15px; 
+            font-size: 16px;
+            border: none;
+            border-radius: 5px;
+            background-color: #007bff;
+            color: #fff;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .test-form input[type="submit"]:hover {
+            background-color: #0056b3;
+        }
+
+        /* 설명서 버튼 스타일 */
+        .manual-btn {
+            display: block;
+            margin: 0 auto; 
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 10px 20px;
+            cursor: pointer;
+            margin-bottom: 5px; 
+        }
+
+        .manual-btn:hover {
+            background-color: #0056b3;
+        }
+
+        /* 설명서 내용 스타일 */
+        .manual-content {
+            margin-top: 5px; 
+            margin-bottom: 20px; 
+            padding: 10px;
+            background-color: #f9f9f9;
+            border-radius: 8px;
+            display: none; 
+        }
+
+        .manual-content p {
+            margin-bottom: 10px;
+        }
+
+        /* 체크박스 일렬 배치 스타일 */
+        .checkbox-group {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 10px;
+            margin-bottom: 10px;
+        }
+
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: calc(33.33% - 10px);
+            height: 90px; 
+            background-color: #f9f9f9;
+            border-radius: 5px;
+            transition: background-color 0.3s, transform 0.3s;
+            cursor: pointer;
+        }
+
+        .checkbox-item input {
+            display: none;
+        }
+
+        .checkbox-item label {
+            font-size: 14px;
+            color: #333;
+            pointer-events: none;
+        }
+
+        .checkbox-item:hover {
+            background-color: #e0e0e0;
+            transform: scale(1.05);
+        }
+
+        .checkbox-item.selected {
+            background-color: #4caf50;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <!-- 로딩 오버레이 -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-spinner"></div>
+        <div class="loading-text">디렉터리 분석중입니다. 다소 시간이 걸릴 수 있습니다.</div>
+    </div>
+
+    <!-- 테스트 영역 -->
+    <div class="test-container">
+        <form action="/" method="post" class="test-form" id="testForm">
+            <h2>테스트 할 URL</h2>
+            <input type="text" id="target_url" name="target_url" required><br><br>
+            <label>취약점 점검 목록</label>
+            <div class="checkbox-group" id="checkboxGroup">
+                <!-- 텍스트 파일 목록이 여기에 동적으로 추가됩니다 -->
+            </div><br>
+            <div id="selectedCount">0개의 선택된 검사 항목</div><br><br>
+            <input type="submit" value="테스트 시작">
+        </form>
+        
+        <!-- 간격 조절 -->
+        <div style="padding: 10px 0;"></div>
+        
+        <!-- 설명서 버튼 -->
+        <button type="button" class="manual-btn" id="showManualBtn">설명서</button>
+        <!-- 설명서 내용 -->
+        <div class="manual-content" id="manualContent">
+            <p>apache-user-enum-1.0.txt: Apache 웹 서버에서 사용자 이름을 탐색하기 위한 초기 워드리스트.</p>
+            <p>apache-user-enum-2.0.txt: 업데이트된 워드리스트로 보다 포괄적인 탐색 가능.</p>
+            <p>directory-list-1.0.txt: 웹 응용 프로그램의 기본 경로를 확인하는 데 유용함.</p>
+            <p>directory-list-2.3-small.txt: 소문자 디렉터리 이름 리스트로 소문자 디렉터리 탐색에 유리.</p>
+            <p>directory-list-2.3-medium.txt: 중간 규모 웹 서버에 적합한 소문자 디렉터리 리스트.</p>
+            <p>directory-list-2.3-big.txt: 대규모 웹 서버에 적합한 소문자 디렉터리 리스트.</p>
+            <p>directory-list-lowercase-2.3-small.txt: 소문자 디렉터리 탐색을 위한 소문자 리스트.</p>
+            <p>directory-list-lowercase-2.3-medium.txt: 중간 규모 웹 서버의 소문자 디렉터리 탐색용.</p>
+            <p>directory-list-lowercase-2.3-big.txt: 대규모 웹 서버의 소문자 디렉터리 탐색용.</p>
+        </div>
+    </div>
+
+    <script>
+        async function fetchTxtFiles() {
+            const response = await fetch('/api/txt_files');
+            const files = await response.json();
+
+            const orderedFiles = [
+                'apache-user-enum-1/apache-user-enum-1.0.txt',
+                'apache-user-enum-2/apache-user-enum-2.0.txt',
+                'directory-list-1/directory-list-1.0.txt',
+                'directory-list-2.s/directory-list-2.3-small.txt',
+                'directory-list-2.m/directory-list-2.3-medium.txt',
+                'directory-list-2.b/directory-list-2.3-big.txt',
+                'directory-list-lowercase.2s/directory-list-lowercase-2.3-small.txt',
+                'directory-list-lowercase.2m/directory-list-lowercase-2.3-medium.txt',
+                'directory-list-lowercase.2b/directory-list-lowercase-2.3-big.txt'
+            ];
+
+            return orderedFiles.filter(file => files.includes(file));
+        }
+
+        async function populateCheckboxes() {
+            const checkboxGroup = document.getElementById('checkboxGroup');
+            const files = await fetchTxtFiles();
+            files.forEach(function(file) {
+                const fileName = file.split('/').pop();
+                const checkboxItem = document.createElement('div');
+                checkboxItem.className = 'checkbox-item';
+                checkboxItem.setAttribute('data-file', file);
+
+                const checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                checkbox.id = file;
+                checkbox.name = 'txt_file';
+                checkbox.value = file;
+
+                const label = document.createElement('label');
+                label.setAttribute('for', file);
+                label.textContent = fileName;
+
+                checkboxItem.appendChild(checkbox);
+                checkboxItem.appendChild(label);
+                checkboxGroup.appendChild(checkboxItem);
+
+                checkboxItem.addEventListener('click', function() {
+                    if (checkbox.checked) {
+                        checkbox.checked = false;
+                    } else if (document.querySelectorAll('.checkbox-item input:checked').length < 9) {
+                        checkbox.checked = true;
+                    }
+                    checkboxItem.classList.toggle('selected', checkbox.checked);
+                    updateSelectedCount();
+                });
+            });
+        }
+
+        function updateSelectedCount() {
+            const checkboxes = document.querySelectorAll('.checkbox-item input:checked');
+            const count = checkboxes.length;
+            document.getElementById('selectedCount').textContent = `${count}개의 선택된 검사 항목`;
+        }
+
+        document.getElementById('showManualBtn').addEventListener('click', function() {
+            const manualContent = document.getElementById('manualContent');
+            manualContent.style.display = manualContent.style.display === 'block' ? 'none' : 'block';
+        });
+
+        document.getElementById('testForm').addEventListener('submit', async function(event) {
+            event.preventDefault();
+            const targetUrl = document.getElementById('target_url').value;
+
+            const response = await fetch('/validate_url', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ url: targetUrl })
+            });
+
+            const result = await response.json();
+            if (!result.valid) {
+                alert(result.message);  // 유효하지 않은 URL일 때 경고창 표시
+            } else {
+                document.getElementById('loadingOverlay').style.visibility = 'visible';
+                this.submit();  // 유효하면 폼을 제출
+            }
+        });
+
+        window.addEventListener('DOMContentLoaded', function() {
+            populateCheckboxes();
+        });
+    </script>
+</body>
+</html>
